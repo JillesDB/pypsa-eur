@@ -26,6 +26,7 @@ gurobi.log
 /notebooks
 /data/*
 /cutouts
+/cutouts_tmp/
 /tmp
 doc/_build
 _build
