@@ -4,7 +4,7 @@
 """
 The script performs a land eligibility analysis of what share of land is
 availability for developing the selected technology at each cutout grid cell.
-The script uses the `atlite <https://github.com/pypsa/atlite>`_ library and
+The script uses the `atlite <https://github.com/pysa/atlite>`_ library and
 several GIS datasets like the CORINE land use data, LUISA land use data,
 Natura2000 nature reserves, GEBCO bathymetry data, and shipping lanes.
 
@@ -107,6 +107,14 @@ if __name__ == "__main__":
         settings = params.get(dataset, {})
         if not settings:
             continue
+        if isinstance(settings, bool):
+            logger.warning(
+                "renewable.%s is a boolean (%s); skipping %s-specific exclusions to keep availability generation running",
+                technology,
+                settings,
+                dataset,
+            )
+            continue
         if dataset == "luisa" and res > 50:
             logger.info(
                 "LUISA data is available at 50m resolution, "
@@ -114,7 +122,10 @@ if __name__ == "__main__":
             )
         if isinstance(settings, list):
             settings = {"grid_codes": settings}
-        if "grid_codes" in settings:
+
+        # Corine/LUISA archives can ship malformed LOCAL_CS metadata; atlite's
+        # raster loader now falls back to the explicit EPSG:3035 CRS.
+        if isinstance(settings, dict) and "grid_codes" in settings:
             codes = settings["grid_codes"]
             excluder.add_raster(
                 snakemake.input[dataset], codes=codes, invert=True, crs=3035, **kwargs

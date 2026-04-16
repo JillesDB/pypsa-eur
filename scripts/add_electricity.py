@@ -650,6 +650,21 @@ def attach_conventional_generators(
     caps = ppl.groupby("carrier").p_nom.sum().div(1e3).round(2)
     logger.info(f"Adding {len(ppl)} generators with capacities [GW]pp \n{caps}")
 
+    # Explicit debug print for hydro/CHP/biomass-related carriers in input table
+    focus_mask = ppl["carrier"].astype(str).str.contains(
+        r"hydro|ror|phs|chp|biomass", case=False, regex=True
+    )
+    if focus_mask.any():
+        focus_caps = (
+            ppl.loc[focus_mask]
+            .groupby("carrier")
+            .p_nom.sum()
+            .div(1e3)
+            .round(2)
+            .sort_values(ascending=False)
+        )
+        logger.info(f"Input carrier focus (hydro/CHP/biomass) [GW]\n{focus_caps}")
+
     n.add(
         "Generator",
         ppl.index,
@@ -895,6 +910,23 @@ def attach_hydro(
             efficiency_store=0.0,
             cyclic_state_of_charge=True,
             inflow=inflow_t.loc[:, hydro.index],
+        )
+
+        # Explicit post-attach hydro summary (what is actually in network)
+        hydro_gen = n.generators.query("carrier == 'ror'")
+        hydro_su = n.storage_units.query("carrier in ['hydro', 'PHS']")
+        hydro_summary = {
+            "ror (Generator)": hydro_gen.p_nom.sum() / 1e3,
+            "hydro (StorageUnit)": (
+                hydro_su.query("carrier == 'hydro'").p_nom.sum() / 1e3
+            ),
+            "PHS (StorageUnit)": (
+                hydro_su.query("carrier == 'PHS'").p_nom.sum() / 1e3
+            ),
+        }
+        logger.info(
+            "Hydro attached summary [GW]\n%s",
+            pd.Series(hydro_summary).round(2).to_string(),
         )
 
 
@@ -1282,6 +1314,23 @@ if __name__ == "__main__":
             snakemake.input.hydro_capacities,
             carriers,
             **p,
+        )
+
+        # Explicit post-attach hydro summary (what is actually in network)
+        hydro_gen = n.generators.query("carrier == 'ror'")
+        hydro_su = n.storage_units.query("carrier in ['hydro', 'PHS']")
+        hydro_summary = {
+            "ror (Generator)": hydro_gen.p_nom.sum() / 1e3,
+            "hydro (StorageUnit)": (
+                hydro_su.query("carrier == 'hydro'").p_nom.sum() / 1e3
+            ),
+            "PHS (StorageUnit)": (
+                hydro_su.query("carrier == 'PHS'").p_nom.sum() / 1e3
+            ),
+        }
+        logger.info(
+            "Hydro attached summary [GW]\n%s",
+            pd.Series(hydro_summary).round(2).to_string(),
         )
 
     estimate_renewable_caps = params.electricity["estimate_renewable_capacities"]

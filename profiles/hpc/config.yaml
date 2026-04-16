@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+#
+# SPDX-License-Identifier: MIT
+
+# See https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
+
+cores: 8
+jobs: 8
+latency-wait: 120
+keep-going: true
+rerun-incomplete: true
+printshellcmds: true
+run:
+  shared_resources: true
+#reason: true

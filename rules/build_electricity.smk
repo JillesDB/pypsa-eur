@@ -199,7 +199,7 @@ if CUTOUT_DATASET["source"] in ["build"]:
         params:
             cutouts=config_provider("atlite", "cutouts"),
         output:
-            cutout=CUTOUT_DATASET["folder"] / "{cutout}.nc",
+            cutout=CUTOUT_DATASET["folder"] + "/{cutout}.nc",
         log:
             "logs/build_cutout/{cutout}.log",
         benchmark:
@@ -360,7 +360,11 @@ rule build_renewable_profiles:
     input:
         availability_matrix=resources("availability_matrix_{clusters}_{technology}.nc"),
         offshore_shapes=resources("offshore_shapes.geojson"),
-        distance_regions=resources("regions_onshore_base_s_{clusters}.geojson"),
+        distance_regions=lambda w: (
+            resources("regions_onshore_base_s_{clusters}.geojson")
+            if w.technology in ("onwind", "solar", "solar-hsat")
+            else resources("regions_offshore_base_s_{clusters}.geojson")
+        ),
         resource_regions=lambda w: (
             resources("regions_onshore_base_s_{clusters}.geojson")
             if w.technology in ("onwind", "solar", "solar-hsat")

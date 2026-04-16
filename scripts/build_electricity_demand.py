@@ -9,6 +9,7 @@ After filling small gaps linearly and large gaps by copying time-slice of a
 given period, the load data is exported to a ``.csv`` file.
 """
 
+import calendar
 import logging
 
 import numpy as np
@@ -309,10 +310,46 @@ if __name__ == "__main__":
         logger.info("Supplement missing data with synthetic data.")
         fn = snakemake.input.synthetic
         synthetic_load = pd.read_csv(fn, index_col=0, parse_dates=True)
+
         # UA, MD, XK, CY, MT do not appear in synthetic load data
-        countries = list(set(countries) - set(["UA", "MD", "XK", "CY", "MT"]))
-        synthetic_load = synthetic_load.loc[snapshots, countries]
-        load = load.combine_first(synthetic_load)
+        countries = list(set(countries) - {"UA", "MD", "XK", "CY", "MT"})
+
+        # Align safely: synthetic data may not contain all requested timestamps/countries.
+        if getattr(synthetic_load.index, "tz", None) is not None:
+            synthetic_load.index = synthetic_load.index.tz_convert(None)
+
+        missing_countries = sorted(set(countries) - set(synthetic_load.columns))
+        if missing_countries:
+            logger.warning(
+                "Synthetic load missing countries: %s", ", ".join(missing_countries)
+            )
+
+        synthetic_load = synthetic_load.reindex(columns=countries)
+        synthetic_aligned = synthetic_load.reindex(index=snapshots)
+
+        # If requested years are missing in synthetic data (e.g. 2025),
+        # build a proxy by repeating the latest available synthetic year profile.
+        if synthetic_aligned.isna().all(axis=1).any() and not synthetic_load.empty:
+            template_year = int(synthetic_load.index.max().year)
+            missing_years = sorted(set(snapshots.year) - set(synthetic_load.index.year))
+            if missing_years:
+                logger.warning(
+                    "Synthetic load has no data for years %s; reusing template year %s.",
+                    ", ".join(map(str, missing_years)),
+                    template_year,
+                )
+
+            def _map_to_template_year(ts: pd.Timestamp) -> pd.Timestamp:
+                if ts.month == 2 and ts.day == 29 and not calendar.isleap(template_year):
+                    return ts.replace(year=template_year, day=28)
+                return ts.replace(year=template_year)
+
+            mapped_index = snapshots.map(_map_to_template_year)
+            synthetic_template = synthetic_load.reindex(index=mapped_index)
+            synthetic_template.index = snapshots
+            synthetic_aligned = synthetic_aligned.combine_first(synthetic_template)
+
+        load = load.combine_first(synthetic_aligned)
 
     assert not load.isna().any().any(), (
         "Load data contains nans. Adjust the parameters "

@@ -1,0 +1,11 @@
+rows=727560 cols=34
+first=1941-01-01 00:00:00 last=2023-12-31 23:00:00 tz=None
+sample_cols=AL,AT,BA,BE,BG,CH,CZ,DE,DK,EE,ES,FI
+year_2016_rows=8784
+year_2017_rows=8760
+year_2018_rows=8760
+year_2019_rows=8760
+year_2020_rows=8784
+year_2021_rows=8760
+year_2022_rows=8760
+year_2023_rows=8760

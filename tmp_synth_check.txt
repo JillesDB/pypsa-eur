@@ -1,0 +1,4 @@
+snapshots=744 2025-01-01 00:00:00 2025-01-31 23:00:00
+synthetic_rows=727560 cols=34
+aligned_shape=(744, 9)
+all_missing_rows=744

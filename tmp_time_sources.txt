@@ -1,0 +1,2 @@
+electricity_demand_base_s.nc: len 8736 first 2025-01-01 00:00:00 last 2025-12-30 23:00:00
+profile_256_solar.nc: len 8736 first 2013-01-01 00:00:00 last 2013-12-30 23:00:00

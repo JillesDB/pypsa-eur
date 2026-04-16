@@ -40,8 +40,8 @@ config/scenarios.yaml
 /data/links_p_nom.csv
 /data/*totals.csv
 /data/biomass*
-/data/bundle/emobility/
-/data/bundle/eea*
+/data/emobility/
+/data/eea
 /data/bundle/jrc*
 /data/heating/
 /data/bundle/eurostat*

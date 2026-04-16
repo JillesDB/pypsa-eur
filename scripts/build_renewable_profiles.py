@@ -153,7 +153,15 @@ if __name__ == "__main__":
     regions = regions.set_index("name").rename_axis("bus")
     if snakemake.wildcards.technology.startswith("offwind"):
         # for offshore regions, the shortest distance to the shoreline is used
-        offshore_regions = availability.coords["bus"].values
+        offshore_regions = pd.Index(availability.coords["bus"].values)
+        missing_regions = offshore_regions.difference(regions.index)
+        if not missing_regions.empty:
+            raise KeyError(
+                "Missing bus names in distance regions for "
+                f"{snakemake.wildcards.technology}: {missing_regions.tolist()}. "
+                f"Check {snakemake.input.distance_regions} against the "
+                "availability matrix bus index."
+            )
         regions = regions.loc[offshore_regions]
         regions = regions.map(lambda g: _simplify_polys(g, minarea=1)).set_crs(
             regions.crs

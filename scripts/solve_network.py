@@ -1596,9 +1596,14 @@ if __name__ == "__main__":
         raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
     n.meta = dict(snakemake.config, **dict(wildcards=dict(snakemake.wildcards)))
+
+    # Ensure output directories exist before exporting artifacts.
+    os.makedirs(os.path.dirname(snakemake.output.network), exist_ok=True)
+    os.makedirs(os.path.dirname(snakemake.output.config), exist_ok=True)
     n.export_to_netcdf(snakemake.output.network)
 
     if snakemake.output.get("model"):
+        os.makedirs(os.path.dirname(snakemake.output.model), exist_ok=True)
         n.model.to_netcdf(snakemake.output.model)
 
     with open(snakemake.output.config, "w") as file:

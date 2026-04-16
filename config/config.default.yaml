@@ -27,7 +27,7 @@ run:
     file: config/scenarios.yaml
   disable_progressbar: false
   shared_resources:
-    policy: false
+    policy: true
     exclude: []
   use_shadow_directory: false
 
@@ -36,56 +36,60 @@ foresight: overnight
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#scenario
 scenario:
+  simpl:
+    - ''
+  ll:
+    - 'v1.0'
   clusters:
-  - 50
+  - 256
   opts:
   - ""
   sector_opts:
   - ""
   planning_horizons:
-  - 2050
+  - 2025
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#countries
 countries:
-- AL
+#- AL
 - AT
-- BA
+#- BA
 - BE
-- BG
+#- BG
 - CH
 - CZ
 - DE
 - DK
-- EE
-- ES
-- FI
+#- EE
+#- ES
+#- FI
 - FR
-- GB
-- GR
-- HR
-- HU
-- IE
-- IT
-- LT
-- LU
-- LV
-- ME
-- MK
+#- GB
+#- GR
+#- HR
+#- HU
+#- IE
+#- IT
+#- LT
+#- LU
+#- LV
+#- ME
+#- MK
 - NL
-- 'NO'
+#- 'NO'
 - PL
-- PT
-- RO
-- RS
-- SE
-- SI
-- SK
-- XK
+#- PT
+#- RO
+#- RS
+#- SE
+#- SI
+#- SK
+#- XK
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#snapshots
 snapshots:
-  start: "2013-01-01"
-  end: "2014-01-01"
+  start: "2025-01-01"
+  end:   "2025-12-31"
   inclusive: left
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#enable
@@ -133,19 +137,19 @@ electricity:
     "iron-air": 100
     H2: 168
   extendable_carriers:
-    Generator:
-    - solar
-    - "solar-hsat"
-    - onwind
-    - "offwind-ac"
-    - "offwind-dc"
-    - "offwind-float"
-    - OCGT
-    - CCGT
+    Generator: []
+#    - solar
+#    - "solar-hsat"
+#    - onwind
+#    - "offwind-ac"
+#    - "offwind-dc"
+#    - "offwind-float"
+#    - OCGT
+#    - CCGT
     StorageUnit: []
-    Store:
-    - battery
-    - H2
+    Store: []
+#    - battery
+#    - H2
     Link: []
   powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)"
   custom_powerplants: false
@@ -169,7 +173,7 @@ electricity:
   - "offwind-float"
   - hydro
   estimate_renewable_capacities:
-    enable: true
+    enable: false
     from_powerplantmatching: true
     from_irenastat: false
     year: 2024
@@ -186,34 +190,67 @@ electricity:
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#atlite
 atlite:
-  default_cutout: "europe-2013-sarah3-era5"
-  nprocesses: 1
-  show_progress: false
+  default_cutout: "central-europe-2025-era5"
+  nprocesses: 8
+  show_progress: true
   plot_availability_matrix: false
   cutouts:
-    "europe-1940-2024-era5":
+    "central-europe-2025-era5":
       module: era5
+      # Optimized Bounding Box for AT, BE, CH, CZ, DE, DK, FR, NL, PL + Offshore
       x:
-      - -12.0
-      - 42.0
-      'y':
-      - 33.0
-      - 72.0
-      dx: 0.3
+        - -8.0   # West edge (Covers French coast and Bay of Biscay offshore wind)
+        - 25.0   # East edge (Covers Poland's eastern border)
+      y:
+        - 41.0   # South edge (Covers southern France / Corsica)
+        - 58.5   # North edge (Covers northern Denmark and its offshore EEZ)
+      dx: 0.3    # ERA5 grid resolution (keep as 0.3)
       dy: 0.3
       time:
-      - '2013'
-      - '2013'
+        - "2025-01-01"
+        - "2025-12-31"
       chunks:
         time: 500
       prepare_kwargs:
+        # Explicitly request ONLY the data PyPSA-Eur needs to minimize file size
         features:
-        - temperature
-        - height
-        - runoff
-        sarah_dir:
+          - wind
+          - influx
+          - temperature
+          - height
+          - runoff
         monthly_requests: true
         tmpdir: ./cutouts_tmp/
+#atlite:
+#  default_cutout: "de-dk-2024-era5"
+#  nprocesses: 8
+#  show_progress: false
+#  plot_availability_matrix: false
+#  cutouts:
+#    "de-dk-2024-era5":
+#      module: era5
+#      x:
+#        - 5.0
+#        - 16.5
+#      y:
+#        - 47.0
+#        - 58.5
+#      dx: 0.3
+#      dy: 0.3
+#      time:
+#        - "2024-01-01"
+#        - "2024-12-31"
+#      chunks:
+#        time: 500
+#      prepare_kwargs:
+#        features:
+#          - wind
+#          - influx
+#          - temperature
+#          - height
+#          - runoff
+#        monthly_requests: true
+#        tmpdir: ./cutouts_tmp/
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#renewable
 renewable:
@@ -226,7 +263,7 @@ renewable:
       add_cutout_windspeed: true
     resource_classes: 1
     capacity_per_sqkm: 3
-    correction_factor: 1.0
+    correction_factor: 1.0 #0.9
     corine:
       grid_codes:
       - 12
@@ -257,8 +294,8 @@ renewable:
       - 4
       - 5
       - 6
-    luisa: false
-    natura: true
+    luisa: true
+    natura: false
     excluder_resolution: 100
     clip_p_max_pu: 0.01
   "offwind-ac":
@@ -270,7 +307,7 @@ renewable:
       add_cutout_windspeed: true
     resource_classes: 1
     capacity_per_sqkm: 2
-    correction_factor: 0.8855
+    correction_factor: 0.8855 #0.797
     corine: false
     luisa: false
     natura: true
@@ -291,7 +328,7 @@ renewable:
       add_cutout_windspeed: true
     resource_classes: 1
     capacity_per_sqkm: 2
-    correction_factor: 0.8855
+    correction_factor: 0.8855 #0.797
     corine: false
     luisa: false
     natura: true
@@ -335,7 +372,7 @@ renewable:
       tracking:
     resource_classes: 1
     capacity_per_sqkm: 5.1
-    correction_factor: 1.0
+    correction_factor: 1.0 #0.8
     corine:
     - 1
     - 2
@@ -360,8 +397,8 @@ renewable:
     - 26
     - 31
     - 32
-    luisa: false
-    natura: true
+    luisa: true
+    natura: false
     excluder_resolution: 100
     clip_p_max_pu: 0.01
   "solar-hsat":
@@ -375,7 +412,7 @@ renewable:
       tracking: horizontal
     resource_classes: 1
     capacity_per_sqkm: 4.43
-    correction_factor: 1.0
+    correction_factor: 1.0 #0.8
     corine:
     - 1
     - 2
@@ -400,8 +437,8 @@ renewable:
     - 26
     - 31
     - 32
-    luisa: false
-    natura: true
+    luisa: true
+    natura: false
     excluder_resolution: 100
     clip_p_max_pu: 0.01
   hydro:
@@ -496,7 +533,7 @@ load:
   manual_adjustments: true
   scaling_factor: 1.0
   fixed_year: false
-  supplement_synthetic: true
+  supplement_synthetic: false
   substation_only: true
   distribution_key:
     gdp: 0.6
@@ -620,12 +657,12 @@ existing_capacities:
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#sector
 sector:
-  transport: true
-  heating: true
-  biomass: true
+  transport: false
+  heating: false
+  biomass: false
   industry: true
-  shipping: true
-  aviation: true
+  shipping: false
+  aviation: false
   agriculture: true
   fossil_fuels: true
   district_heating:
@@ -1135,7 +1172,7 @@ solving:
   options:
     clip_p_max_pu: 0.01
     load_shedding:
-      enable: false
+      enable: true
       default_cost: 100000
       all_carriers: true
       carriers: {}
@@ -1187,10 +1224,10 @@ solving:
     SAFE: false
   solver:
     name: gurobi
-    options: "gurobi-default"
+    options: "gurobi-numeric-focus"
   solver_options:
     "highs-default":
-      threads: 1
+      threads: 8
       solver: ipm
       run_crossover: 'off'
       small_matrix_value: 1.0e-06
@@ -1220,9 +1257,9 @@ solving:
       method: 2
       crossover: 0
       BarHomogeneous: 1
-      BarConvTol: 1.0e-05
-      FeasibilityTol: 0.0001
-      OptimalityTol: 0.0001
+      BarConvTol: 1.0e-03
+      FeasibilityTol: 0.01
+      OptimalityTol: 0.01
       ObjScale: -0.5
       threads: 8
       Seed: 123
@@ -1342,13 +1379,13 @@ data:
     source: primary
     version: latest
   synthetic_electricity_demand:
-    source: primary
+    source: archive
     version: latest
   opsd_electricity_demand:
     source: archive
     version: latest
   entsoe_electricity_demand:
-    source: archive
+    source: build
     version: latest
   neso_electricity_demand:
     source: archive
@@ -1429,7 +1466,7 @@ data:
     source: archive
     version: latest
   cutout:
-    source: archive
+    source: build
     version: latest
   dh_areas:
     source: archive
