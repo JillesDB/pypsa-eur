@@ -152,7 +152,7 @@ electricity:
     #    - H2
     Link: []
 #  powerplants_filter: "(DateOut >= 2026 or DateOut != DateOut) and (DateIn < 2025 or DateIn != DateIn) and Country != 'DE'"
-  powerplants_filter: "(DateOut >= 2026 or DateOut != DateOut) and (DateIn < 2025 or DateIn != DateIn)"
+  powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)"
 #  custom_powerplants: "data/custom_powerplants_2025.csv"
   custom_powerplants: false #  custom_ppl_query: false
   custom_ppl_query: false
@@ -1185,7 +1185,7 @@ solving:
   options:
     clip_p_max_pu: 0.01
     load_shedding:
-      enable: false
+      enable: true
       default_cost: 100000
       all_carriers: true
       carriers: {}
@@ -1199,7 +1199,7 @@ solving:
     skip_iterations: true
     rolling_horizon: false
     seed: 123
-    custom_extra_functionality: data/custom_extra_functionality.py
+    custom_extra_functionality: ../data/custom_extra_functionality.py
     io_api:
     track_iterations: false
     min_iterations: 2
@@ -1223,6 +1223,7 @@ solving:
       fractional_last_unit_size: false
     keep_files: false
     store_model: false
+    assign_all_duals: true
     model_kwargs:
       solver_dir: ""
   agg_p_nom_limits:
@@ -1267,12 +1268,14 @@ solving:
       PreDual: 0
       GURO_PAR_BARDENSETHRESH: 200
     "gurobi-numeric-focus":
-      NumericFocus: 3
+      NumericFocus: 1
       method: 2
       crossover: 0
-      BarHomogeneous: 1
-      BarConvTol: 1.0e-05
-      FeasibilityTol: 0.01 # reduced from 0.0001
+#      Is 0 acceptable for publication? Yes, if you are only reporting total capacities, total costs, and general generation dispatch.
+#      When is it NOT acceptable? If your research specifically analyzes Nodal Marginal Prices (LMPs) or precise dual values for economic market analysis, you usually need crossover: 1 to get accurate shadow prices.
+      BarHomogeneous: 0
+      BarConvTol: 1.0e-04
+      FeasibilityTol: 0.001 # reduced from 0.0001
       OptimalityTol: 0.001 # reduced from 0.0001
       ObjScale: -0.5
       threads: 8

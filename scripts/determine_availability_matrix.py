@@ -62,13 +62,22 @@ import atlite
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
+import rasterio
 import xarray as xr
 from atlite.gis import shape_availability
 from rasterio.plot import show
+from rasterio.crs import CRS
 
 from scripts._helpers import configure_logging, load_cutout, set_scenario_config
 
 logger = logging.getLogger(__name__)
+
+
+def _open_raster_with_crs(path, crs=3035):
+    """Open raster and enforce CRS to avoid invalid LOCAL_CS metadata issues."""
+    raster = rasterio.open(path)
+    raster._crs = CRS.from_user_input(crs)
+    return raster
 
 
 if __name__ == "__main__":
@@ -123,18 +132,19 @@ if __name__ == "__main__":
         if isinstance(settings, list):
             settings = {"grid_codes": settings}
 
-        # Corine/LUISA archives can ship malformed LOCAL_CS metadata; atlite's
-        # raster loader now falls back to the explicit EPSG:3035 CRS.
+        # Corine/LUISA archives can ship malformed LOCAL_CS metadata; force EPSG:3035.
+        dataset_raster = _open_raster_with_crs(snakemake.input[dataset], 3035)
+
         if isinstance(settings, dict) and "grid_codes" in settings:
             codes = settings["grid_codes"]
             excluder.add_raster(
-                snakemake.input[dataset], codes=codes, invert=True, crs=3035, **kwargs
+                dataset_raster, codes=codes, invert=True, crs=3035, **kwargs
             )
         if settings.get("distance", 0.0) > 0.0:
             codes = settings["distance_grid_codes"]
             buffer = settings["distance"]
             excluder.add_raster(
-                snakemake.input[dataset], codes=codes, buffer=buffer, crs=3035, **kwargs
+                dataset_raster, codes=codes, buffer=buffer, crs=3035, **kwargs
             )
 
     if params.get("ship_threshold"):
