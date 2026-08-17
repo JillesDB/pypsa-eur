@@ -28,6 +28,8 @@ gurobi.log
 /cutouts
 /cutouts_tmp/
 /tmp
+/hpc_output_and_error_files/
+/doc/img/validation_country_generation_mix_overview.png
 doc/_build
 _build
 

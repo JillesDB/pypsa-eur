@@ -29,17 +29,24 @@ if __name__ == "__main__":
 
     config = snakemake.config["energy"]
 
+    pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
+
+    totals = pd.read_csv(snakemake.input.energy_totals, index_col=[0, 1])
+    available_years = totals.index.get_level_values(1).unique()
+
     if snakemake.wildcards.kind == "heat":
         snapshots = get_snapshots(
             snakemake.params.snapshots, snakemake.params.drop_leap_day
         )
-        data_years = snapshots.year.unique()
+        data_years = [y for y in snapshots.year.unique() if y in available_years]
+        if not data_years:
+            data_years = [int(available_years.max())]
     else:
-        data_years = int(config["energy_totals_year"])
+        year = int(config["energy_totals_year"])
+        if year not in available_years:
+            year = int(available_years[available_years <= year].max())
+        data_years = year
 
-    pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
-
-    totals = pd.read_csv(snakemake.input.energy_totals, index_col=[0, 1])
     totals = totals.loc[idx[:, data_years], :].groupby("country").mean()
 
     nodal_totals = totals.loc[pop_layout.ct].fillna(0.0)

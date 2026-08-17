@@ -24,7 +24,8 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    df = pd.read_csv(snakemake.input["csv"], parse_dates=True, index_col=0)["price"]
+    df_raw = pd.read_csv(snakemake.input["csv"], parse_dates=True, index_col=0)
+    df = df_raw["price"] if "price" in df_raw.columns else df_raw.iloc[:, 0]
 
     rolling_window = snakemake.params["rolling_window"]
 

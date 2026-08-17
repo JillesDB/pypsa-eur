@@ -6291,7 +6291,14 @@ if __name__ == "__main__":
 
     fn = snakemake.input.heating_efficiencies
     year = int(snakemake.params["energy_totals_year"])
-    heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
+    _he_df = pd.read_csv(fn, index_col=[1, 0])
+    available_years = _he_df.index.get_level_values(0).unique()
+    year_he = min(year, available_years.max())
+    if year_he != year:
+        logger.warning(
+            f"Heating efficiencies not available for {year}, using {year_he} instead."
+        )
+    heating_efficiencies = _he_df.loc[year_he]
 
     spatial = define_spatial(pop_layout.index, options)
 

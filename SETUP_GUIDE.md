@@ -76,7 +76,7 @@ ssh-keygen -t ed25519 -C "your_email@dtu.dk"
 │   └── kupferzell/                 # Isolated Python environment
 ├── PycharmProjects/
 │   ├── Battery_Congestion_Alleviation/   # Your analysis repo
-│   │   ├── config/                       # Configs (kupferzell_2024.yaml)
+│   │   ├── config/                       # Configs (kupferzell_2025.yaml)
 │   │   ├── data/                         # Local reference data
 │   │   ├── shell_scripts/                # HPC job launchers
 │   │   ├── outputs/                      # Analysis results
@@ -175,15 +175,15 @@ cd pypsa-eur
 git log --oneline | head -5  # Verify commit hash
 ```
 
-### Configuration: `config/kupferzell_2024.yaml`
+### Configuration: `config/kupferzell_2025.yaml`
 
 Create a dedicated config for your 2025 grid analysis:
 
 ```bash
-cp config/config.default.yaml config/kupferzell_2024.yaml
+cp config/config.default.yaml config/kupferzell_2025.yaml
 ```
 
-Edit `config/kupferzell_2024.yaml`:
+Edit `config/kupferzell_2025.yaml`:
 
 ```yaml
 # Metadata
@@ -191,7 +191,7 @@ version: v2026.02.0
 
 # Run naming
 run:
-  name: kupferzell_2024
+  name: kupferzell_2025
   prefix: ""
   scenarios:
     enable: false
@@ -284,7 +284,7 @@ costs:
 ### Verify Configuration
 
 ```bash
-snakemake -n --configfile config/kupferzell_2024.yaml -- resources/kupferzell_2024/regions_onshore_base_s_256.geojson
+snakemake -n --configfile config/kupferzell_2025.yaml -- resources/kupferzell_2025/regions_onshore_base_s_256.geojson
 ```
 
 This should list ~15 jobs without errors.
@@ -440,10 +440,10 @@ For the 256-cluster electricity solve, the observed rule order is:
 
 The important file handoff is:
 
-- `build_powerplants` writes: `resources/kupferzell_2024/powerplants_s_256.csv`
-- `add_electricity` writes: `resources/kupferzell_2024/networks/base_s_256_elec.nc`
-- `prepare_network` writes: `resources/kupferzell_2024/networks/base_s_256_elec_.nc`
-- `solve_network` reads the `resources/...base_s_256_elec_.nc` file and writes solved outputs under `results/kupferzell_2024/...`
+- `build_powerplants` writes: `resources/kupferzell_2025/powerplants_s_256.csv`
+- `add_electricity` writes: `resources/kupferzell_2025/networks/base_s_256_elec.nc`
+- `prepare_network` writes: `resources/kupferzell_2025/networks/base_s_256_elec_.nc`
+- `solve_network` reads the `resources/...base_s_256_elec_.nc` file and writes solved outputs under `results/kupferzell_2025/...`
 
 So when debugging pre-solve network content (carriers, load, p_nom), inspect the `resources/` network files; when debugging final optimization output, inspect `results/`.
 
@@ -475,20 +475,20 @@ tail -f ~/PycharmProjects/Battery_Congestion_Alleviation/hpc_output_and_error_fi
 
 ```bash
 # Pre-solve artifacts (rule outputs)
-ls -lh resources/kupferzell_2024/powerplants_s_256.csv
-ls -lh resources/kupferzell_2024/networks/base_s_256_elec.nc
-ls -lh resources/kupferzell_2024/networks/base_s_256_elec_.nc
+ls -lh resources/kupferzell_2025/powerplants_s_256.csv
+ls -lh resources/kupferzell_2025/networks/base_s_256_elec.nc
+ls -lh resources/kupferzell_2025/networks/base_s_256_elec_.nc
 
 # Solver outputs
-ls -lh results/kupferzell_2024/logs/solve_network/
-ls -lh results/kupferzell_2024/networks/
+ls -lh results/kupferzell_2025/logs/solve_network/
+ls -lh results/kupferzell_2025/networks/
 ```
 
 ### Custom Powerplants Checks (Critical)
 
 If CCGT/OCGT or hydro look wrong, validate these before rerun:
 
-1. In `config/kupferzell_2024.yaml`, avoid excluding Germany unintentionally:
+1. In `config/kupferzell_2025.yaml`, avoid excluding Germany unintentionally:
    - bad: `Country != 'DE'`
    - expected for DE-focused run: `Country == 'DE'` (or remove country clause)
 2. Ensure `data/custom_powerplants.csv` is regenerated after any script change.
@@ -508,21 +508,21 @@ If CCGT/OCGT or hydro look wrong, validate these before rerun:
 **What to check first:**
 
 ```bash
-ls -lh ~/PycharmProjects/pypsa-eur/resources/kupferzell_2024/networks/base_s_256_elec_.nc
-ls -lh ~/PycharmProjects/pypsa-eur/results/kupferzell_2024/networks/
+ls -lh ~/PycharmProjects/pypsa-eur/resources/kupferzell_2025/networks/base_s_256_elec_.nc
+ls -lh ~/PycharmProjects/pypsa-eur/results/kupferzell_2025/networks/
 ```
 
 If your post-processing script targets the pre-solve network, point it to `resources/.../base_s_256_elec_.nc`.
 
 ### Issue: CCGT/OCGT capacities look implausible
 
-**Typical cause in this setup**: misconfigured `powerplants_filter` in `config/kupferzell_2024.yaml` and/or gas technology classification in `build_custom_powerplants_2025.py`.
+**Typical cause in this setup**: misconfigured `powerplants_filter` in `config/kupferzell_2025.yaml` and/or gas technology classification in `build_custom_powerplants_2025.py`.
 
 **Quick checks:**
 
 ```bash
 # Check filter
-grep -n "powerplants_filter" config/kupferzell_2024.yaml
+grep -n "powerplants_filter" config/kupferzell_2025.yaml
 
 # Check generated custom file totals
 python3 - <<'PY'
@@ -563,8 +563,8 @@ cd ~/PycharmProjects/pypsa-eur
 python3 ~/PycharmProjects/Battery_Congestion_Alleviation/build_custom_powerplants_2025.py
 
 # 4) Dry-run the exact final target
-snakemake -n --cores 1 --profile profiles/hpc --configfile config/kupferzell_2024.yaml -- \
-  results/kupferzell_2024/networks/base_s_256_elec_.nc
+snakemake -n --cores 1 --profile profiles/hpc --configfile config/kupferzell_2025.yaml -- \
+  results/kupferzell_2025/networks/base_s_256_elec_.nc
 
 # 5) Submit full run
 bsub < ~/PycharmProjects/Battery_Congestion_Alleviation/shell_scripts/job_snakemake_kupferzell_full.sh
@@ -574,8 +574,8 @@ bjobs -l <job_id>
 tail -f ~/PycharmProjects/Battery_Congestion_Alleviation/hpc_output_and_error_files/Output_<job_id>.err
 
 # 7) Inspect intermediate and final files
-ls -lh resources/kupferzell_2024/networks/base_s_256_elec_.nc
-ls -lh results/kupferzell_2024/networks/
+ls -lh resources/kupferzell_2025/networks/base_s_256_elec_.nc
+ls -lh results/kupferzell_2025/networks/
 ```
 
 ---
@@ -585,12 +585,12 @@ ls -lh results/kupferzell_2024/networks/
 | Purpose | Path | Notes |
 |---------|------|-------|
 | **This guide** | `~/PycharmProjects/Battery_Congestion_Alleviation/SETUP_GUIDE.md` | Read first |
-| **Config (PyPSA)** | `~/PycharmProjects/pypsa-eur/config/kupferzell_2024.yaml` | 2025 grid + 2013 weather |
+| **Config (PyPSA)** | `~/PycharmProjects/pypsa-eur/config/kupferzell_2025.yaml` | 2025 grid + 2013 weather |
 | **Config (Requirements)** | `~/PycharmProjects/Battery_Congestion_Alleviation/requirements.txt` | Locked dependencies |
 | **HPC Launcher** | `~/PycharmProjects/Battery_Congestion_Alleviation/shell_scripts/job_snakemake_kupferzell.sh` | Submit with `bsub` |
 | **open-MaStR data** | `~/.open-MaStR/` | 2025 grid topology (already downloaded) |
-| **Final network (pre-solve)** | `~/PycharmProjects/pypsa-eur/resources/kupferzell_2024/networks/base_s_256_elec_.nc` | Produced by `prepare_network`; used for diagnostics and pre-solve post-processing |
-| **Solved network outputs** | `~/PycharmProjects/pypsa-eur/results/kupferzell_2024/networks/` | Produced by `solve_network` |
+| **Final network (pre-solve)** | `~/PycharmProjects/pypsa-eur/resources/kupferzell_2025/networks/base_s_256_elec_.nc` | Produced by `prepare_network`; used for diagnostics and pre-solve post-processing |
+| **Solved network outputs** | `~/PycharmProjects/pypsa-eur/results/kupferzell_2025/networks/` | Produced by `solve_network` |
 | **Patch 1: atlite CRS** | `~/venvs/kupferzell/lib/python3.12/site-packages/atlite/gis.py` | Handles malformed raster CRS |
 | **Patch 2: build_electricity** | `~/PycharmProjects/pypsa-eur/rules/build_electricity.smk` | Fixes filename wildcards |
 | **Patch 3: availability matrix** | `~/PycharmProjects/pypsa-eur/scripts/determine_availability_matrix.py` | Handles boolean LUISA/Corine |

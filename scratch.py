@@ -1,5 +1,5 @@
 import pypsa
-n = pypsa.Network("resources/kupferzell_2024/networks/base_s_256_elec_.nc")
+n = pypsa.Network("resources/kupferzell_2025/networks/base_s_256_elec_.nc")
 
 # Check for infinite bounds
 print("Lines with s_nom > 100000:")

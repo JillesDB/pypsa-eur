@@ -395,7 +395,10 @@ rule build_co2_prices:
     params:
         rolling_window=config_provider("costs", "emission_prices", "rolling_window"),
     input:
-        csv=rules.retrieve_co2_prices.output["csv"],
+        csv=lambda w: (
+            config_provider("costs", "emission_prices", "file", default=None)(w)
+            or rules.retrieve_co2_prices.output["csv"]
+        ),
     output:
         csv=resources("co2_price.csv"),
     log:
@@ -414,8 +417,12 @@ rule build_fossil_fuel_prices:
         "Building fossil fuel price time series"
     params:
         rolling_window=config_provider("conventional", "fuel_price_rolling_window"),
+        fuel_price_file=config_provider("conventional", "fuel_price_file", default=None),
     input:
-        fuel_price_raw=rules.retrieve_worldbank_commodity_prices.output["xlsx"],
+        fuel_price_raw=lambda w: (
+            config_provider("conventional", "fuel_price_file", default=None)(w)
+            or rules.retrieve_worldbank_commodity_prices.output["xlsx"]
+        ),
     output:
         fuel_price=resources("monthly_fuel_price.csv"),
     log:

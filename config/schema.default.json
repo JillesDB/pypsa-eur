@@ -5628,6 +5628,11 @@
               "default": true,
               "description": "Whether to integrate the manually added transmission projects. They are taken from the previously existing links_tyndp.csv file.",
               "type": "boolean"
+            },
+            "manual_v2_kupferzell": {
+              "default": false,
+              "description": "Whether to integrate the manual_v2_kupferzell dataset: missing existing 380 kV corridors in BW reconstructed from TransnetBW/Amprion Netzkarten for the Kupferzell extended-network analysis. Only active in kupferzell_2025_v2_full.yaml; default off for all other configs.",
+              "type": "boolean"
             }
           }
         },
@@ -10221,6 +10226,11 @@
             "manual": {
               "default": true,
               "description": "Whether to integrate the manually added transmission projects. They are taken from the previously existing links_tyndp.csv file.",
+              "type": "boolean"
+            },
+            "manual_v2_kupferzell": {
+              "default": false,
+              "description": "Whether to integrate the manual_v2_kupferzell dataset: missing existing 380 kV corridors in BW reconstructed from TransnetBW/Amprion Netzkarten for the Kupferzell extended-network analysis. Only active in kupferzell_2025_v2_full.yaml; default off for all other configs.",
               "type": "boolean"
             }
           }

@@ -537,9 +537,14 @@ def add_heating_capacities_installed_before_baseyear(
     logger.debug(f"Adding heating capacities installed before {baseyear}")
 
     # Load heating efficiencies
-    heating_efficiencies = pd.read_csv(efficiency_file, index_col=[1, 0]).loc[
-        energy_totals_year
-    ]
+    _he_df = pd.read_csv(efficiency_file, index_col=[1, 0])
+    available_years = _he_df.index.get_level_values(0).unique()
+    year_he = min(energy_totals_year, available_years.max())
+    if year_he != energy_totals_year:
+        logger.warning(
+            f"Heating efficiencies not available for {energy_totals_year}, using {year_he} instead."
+        )
+    heating_efficiencies = _he_df.loc[year_he]
 
     ratios = []
     valid_grouping_years = []
@@ -810,7 +815,14 @@ if __name__ == "__main__":
         # one could use baseyear here instead (but dangerous if no data)
         fn = snakemake.input.heating_efficiencies
         year = int(snakemake.params["energy_totals_year"])
-        heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
+        _he_df = pd.read_csv(fn, index_col=[1, 0])
+        available_years = _he_df.index.get_level_values(0).unique()
+        year_he = min(year, available_years.max())
+        if year_he != year:
+            logger.warning(
+                f"Heating efficiencies not available for {year}, using {year_he} instead."
+            )
+        heating_efficiencies = _he_df.loc[year_he]
 
         add_heating_capacities_installed_before_baseyear(
             n=n,

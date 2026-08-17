@@ -27,6 +27,9 @@ logger = logging.getLogger(__name__)
 def build_nodal_transport_data(fn, pop_layout, year):
     # get numbers of car and fuel efficiency per country
     transport_data = pd.read_csv(fn, index_col=[0, 1])
+    available_years = transport_data.index.get_level_values("year").unique()
+    if year not in available_years:
+        year = int(available_years[available_years <= year].max())
     transport_data = transport_data.xs(year, level="year")
 
     # break number of cars down to nodal level based on population density

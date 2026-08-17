@@ -468,6 +468,9 @@ if __name__ == "__main__":
     n.buses.drop(remove, axis=1, inplace=True, errors="ignore")
     n.lines.drop(remove, axis=1, errors="ignore", inplace=True)
 
+    # NaN in dc (e.g. from TYNDP lines) breaks consense during aggregation; treat as AC
+    n.lines["dc"] = n.lines["dc"].fillna(0).astype(bool)
+
     if params.simplify_network["to_substations"]:
         n, substation_map = aggregate_to_substations(
             n, substations_i, params.aggregation_strategies

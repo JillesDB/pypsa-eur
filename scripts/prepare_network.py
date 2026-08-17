@@ -132,7 +132,9 @@ def add_emission_prices(n, emission_prices={"co2": 0.0}, exclude_co2=False):
 
 def add_dynamic_emission_prices(n, fn):
     co2_price = (
-        pd.read_csv(fn, index_col=0, parse_dates=True).squeeze().reindex(n.snapshots)
+        pd.read_csv(fn, index_col=0, parse_dates=True)
+        .squeeze()
+        .reindex(n.snapshots, method="ffill")
     )
 
     emissions = (

@@ -38,6 +38,20 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    # If a custom pre-processed CSV was supplied via conventional.fuel_price_file,
+    # use it directly — no deflation or unit conversion needed.
+    if str(snakemake.input.fuel_price_raw).endswith(".csv"):
+        df = pd.read_csv(
+            snakemake.input.fuel_price_raw, index_col=0, parse_dates=True
+        )
+        df = df.replace(0.0, float("nan")).ffill().bfill()
+        df.to_csv(snakemake.output.fuel_price)
+        logger.info(
+            "Custom fuel price CSV used directly: %s", snakemake.input.fuel_price_raw
+        )
+        logger.info("Loaded fuel prices (last 5 rows):\n%s", df.tail(5).to_string())
+        raise SystemExit(0)
+
     df = pd.read_excel(
         snakemake.input.fuel_price_raw,
         skiprows=[0, 1, 2, 3, 5],
